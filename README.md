@@ -33,3 +33,10 @@ We define a listing as **high-occupancy** if:
 
 ```text
 estimated_occupancy_l365d >= 60
+
+This creates a binary target variable:
+
+high_occupancy = 1 if estimated_occupancy_l365d >= 60
+high_occupancy = 0 otherwise
+
+Approximately 27.76% of listings are classified as high-occupancy.
