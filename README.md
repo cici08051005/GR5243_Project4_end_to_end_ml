@@ -1,42 +1,35 @@
-# GR5243_Project4_end_to_end_ml
+# STAT GR5243 Project 4: Predicting High-Occupancy Airbnb Listings in NYC
 
-Final project repository for STAT GR5243: an end-to-end machine learning workflow including data cleaning, EDA, unsupervised learning, feature engineering, supervised modeling, evaluation, and reporting.
+## Project Overview
 
-## Next step (right now)
+This repository contains our final project for **STAT GR5243: Advanced Data Science and Artificial Intelligence**.
 
-1. Put raw data files into `data/raw/`.
-2. Add a project requirement checklist to Issues (or copy the checklist below).
-3. Start with one notebook for initial EDA in `notebooks/`.
-4. Commit this scaffold as your second commit.
+The project follows an end-to-end machine learning workflow using Inside Airbnb New York City data. Our goal is to understand what listing, host, location, and property-related factors are associated with higher Airbnb booking activity, and to build supervised learning models that predict whether a listing is likely to be high-occupancy.
 
-## Suggested project structure
+## Research Question
 
-```
-GR5243_Project4_end_to_end_ml/
-├── data/
-│   ├── raw/
-│   └── processed/
-├── notebooks/
-├── src/
-├── reports/
-├── .gitignore
-└── README.md
-```
+**What listing, host, location, and review-related factors are associated with higher Airbnb booking activity in New York City, and how accurately can we predict high-occupancy listings using machine learning models?**
 
-## Execution checklist (Project4)
+## Data Source
 
-- [ ] Define problem statement and target variable
-- [ ] Data cleaning and preprocessing
-- [ ] Exploratory data analysis (EDA)
-- [ ] Unsupervised learning (if required)
-- [ ] Feature engineering
-- [ ] Supervised modeling and tuning
-- [ ] Evaluation and model comparison
-- [ ] Final report and reproducibility notes
+The raw data come from **Inside Airbnb**, using the New York City listings dataset.
 
-## Commit convention (recommended)
+Raw files used in this project include:
 
-- `chore: scaffold project structure`
-- `feat: add data cleaning pipeline`
-- `feat: add baseline model`
-- `docs: add report draft`
+- `listings.csv.gz`: detailed listings data
+- `listings.csv`: summary listings data
+- `neighbourhoods.csv`: neighbourhood information
+- `neighbourhoods.geojson`: neighbourhood geographic boundary file
+
+The detailed listings file contains **36,445 rows and 85 columns**.
+
+## Project Motivation
+
+Our initial project idea was to predict Airbnb listing prices in New York City. However, after examining the downloaded raw data, we found that the `price` column was completely missing in both the detailed and summary listings files.
+
+Because of this data quality issue, we reframed the project as a classification problem: predicting whether a listing is high-occupancy.
+
+We define a listing as **high-occupancy** if:
+
+```text
+estimated_occupancy_l365d >= 60
