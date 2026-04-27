@@ -1,0 +1,5 @@
+listing_cluster,listings,high_occupancy_rate,median_occupancy,median_availability_365,median_reviews,median_reviews_per_month,median_minimum_nights,median_accommodates
+0,17945,0.19492894956812482,0.0,0.0,3.0,0.05,30.0,2.0
+1,1772,0.9762979683972912,255.0,215.0,144.0,3.71,1.0,2.0
+2,1540,0.03116883116883117,0.0,301.0,0.0,0.0,30.0,2.0
+3,15188,0.3187384777455886,0.0,337.0,3.0,0.12,30.0,2.0
