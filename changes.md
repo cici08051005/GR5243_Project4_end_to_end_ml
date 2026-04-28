@@ -125,26 +125,26 @@ File: `data/processed/nyc_airbnb_cleaned.csv` (overwritten)
 - `identifier_cols` updated: removed `host_since` (no longer in cleaned data)
 - Categorical/numeric feature detection is automatic via `select_dtypes`
 - **Models replaced**: LR and HGB → SVM (RBF) and PyTorch MLP; RF kept
-- **SMOTENC** for RF and MLP; `class_weight="balanced"` for SVM (O(n²) constraint)
+- **SMOTENC** pre-computed once, shared by all 3 models; `imblearn.pipeline.Pipeline` used for clean CV
 - **PyTorch MLP** with BatchNorm, Dropout, early stopping, training curve visualization
 - **SHAP analysis** added: TreeExplainer on RF, summary + bar plots
-- Uses `imblearn.pipeline.Pipeline` so SMOTENC is applied only to training folds
+- `listing_cluster` dropped — KMeans was built from leakage-prone features
 
 ---
 
 ## Modeling Changes (Notebook 03)
 
-### 8. SMOTENC for Class Imbalance (Pre-computed)
+### 8. SMOTENC for Class Imbalance
 
 The target is imbalanced (72.2% low vs 27.8% high occupancy). Added **SMOTENC**
 (Synthetic Minority Over-sampling for Nominal and Continuous) to generate synthetic
 minority samples in training data.
 
 - **Pre-computed once** on raw training data before preprocessing — all 3 models
-  receive the same balanced, preprocessed dataset (no redundant recomputation)
+  receive the same balanced, preprocessed dataset for training and tuning
 - Training set: 29,156 → 42,124 samples (21,062 per class)
-- Preprocessing (StandardScaler + OneHotEncoder) fitted on SMOTENC'd data, applied to both train and test
-- 339 features after one-hot encoding
+- **Cross-validation uses `imblearn.pipeline.Pipeline`** so SMOTENC is applied only
+  inside training folds, producing clean CV estimates without synthetic-sample leakage
 - `k_neighbors=5` for synthetic sample generation
 
 ### 9. Data Leakage Prevention
@@ -157,6 +157,7 @@ Removed post-outcome proxy variables from model inputs:
 | `number_of_reviews*`, `reviews_per_month` | Direct measures of booking activity |
 | `days_since_last_review`, `listing_age_days` | Temporal proxies for booking recency |
 | `review_scores_*_missing` (7 cols) | 100% of high-occupancy listings have reviews |
+| `listing_cluster` | KMeans was fit on availability/review features; cluster 1 = 97% high-occupancy, leaking proxy info indirectly |
 
 ### 10. Model Replacement: Three Learning Paradigms
 
@@ -169,12 +170,12 @@ Replaced Logistic Regression and Hist Gradient Boosting with SVM and PyTorch MLP
 | Model 3 | — | **PyTorch MLP** | Deep neural network |
 
 **Random Forest details**: Hyperparameter tuning via `RandomizedSearchCV` (30 iterations,
-3-fold stratified CV). Best params: n_estimators=300, max_depth=None, min_samples_leaf=3,
-min_samples_split=10, max_features=0.3. CV AUC: 0.965.
+3-fold stratified CV on pre-resampled data for parameter selection). Clean CV AUC
+computed separately using `imblearn.pipeline.Pipeline` with SMOTENC inside folds.
 
 **SVM details**: Tuned via `RandomizedSearchCV` (20 iterations) on 10K stratified subsample
-(O(n²) complexity makes full-data tuning impractical). Best params: C=5.0, gamma=scale.
-Retrained on full 42K SMOTENC'd data. Uses `class_weight="balanced"` and `decision_function`
+(O(n²) complexity makes full-data tuning impractical). Retrained on full SMOTENC'd data.
+No `class_weight="balanced"` — data is already balanced by SMOTENC. Uses `decision_function`
 for ROC-AUC scoring.
 
 **PyTorch MLP details**:
@@ -203,8 +204,8 @@ Added SHAP (SHapley Additive exPlanations) interpretability analysis:
 
 | Model | AUC | F1 | Accuracy | Precision | Recall |
 |-------|-----|-----|----------|-----------|--------|
-| Random Forest (tuned) | 0.931 | 0.756 | 0.867 | 0.770 | 0.742 |
-| PyTorch MLP | 0.903 | 0.728 | 0.846 | 0.714 | 0.742 |
-| SVM (RBF, tuned) | 0.899 | 0.716 | 0.837 | 0.694 | 0.740 |
+| Random Forest (tuned) | 0.926 | 0.754 | 0.864 | 0.760 | 0.748 |
+| PyTorch MLP | 0.899 | 0.722 | 0.849 | 0.737 | 0.708 |
+| SVM (RBF, tuned) | 0.892 | 0.715 | 0.835 | 0.686 | 0.746 |
 
-Best model by AUC: **Random Forest** (0.931, CV AUC 0.965 ± 0.001)
+Best model by AUC: **Random Forest** (0.926, clean CV AUC 0.921 ± 0.001)
